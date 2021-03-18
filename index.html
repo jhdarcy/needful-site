@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+
+<html>
+<head lang="en">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <title>Needful</title>
+    <style>
+
+body {
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+/*\ Slide container and content \*/
+
+#slide-container {
+    position: absolute;
+    display: block;
+}
+
+#slide-content {
+    margin-left: 40px;
+    margin-right: 40px;
+    display: grid;
+}
+
+/*\ Slide number, navigation menu and footer \*/
+
+footer {
+    position: absolute;
+    display: block;
+    bottom: 0;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    width: -fill-available;
+}
+
+#nav-menu {
+    position: relative;
+}
+
+#slide-number {
+    display: block;
+    padding: 2.5%;
+    text-align: left;
+}
+
+#slide-number-span {
+    cursor: pointer;
+    padding-left: 2%;
+    padding-right: 2%;
+}
+
+#nav-menu-content {
+    display: none;
+    position: absolute;
+    z-index: 100;
+    padding: 10px;
+    text-align: left;
+    bottom: 2em;
+}
+
+#nav-menu-content a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#slide-title {
+    font-size: 3em;
+    padding-top: 2%;
+    padding-left: 2%;
+}
+
+/*\ Slide controllers - forward and back controls \*/
+
+.slide-control {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    padding: 16px;
+    margin-top: -22px;
+    user-select: none;
+    z-index: 100;
+    text-decoration: none;
+}
+
+.slide-control.next {
+    /* Position the "next button" to the right. */
+    right: 0;
+}        /* Some convenient global styling variables, modify and add to as necessary. Please note that all variable names need
+to be defined under :root, are preceded by -- and are case sensitive.*/
+
+:root{
+    --main-background-color: white;
+
+    --main-font-family: 'Inter', sans-serif;
+    --main-font-color: black;
+
+    --slide-margin-left: 3.5%;
+    --slide-margin-right: 3.5%;
+    --slide-margin-top: 2.5%;
+    --slide-margin-bottom: 2%;
+
+    --slide-title-position: left; /* left, center, or right */
+    --slide-number-position: left; /* left, center, or right */
+
+}
+
+/* Do some font stuff first. */
+
+body {
+    /* Set initial font size to 12px. This doesn't mean all text will be 12px, but means all text will be sized
+     *relative* to this, using the CSS "em" unit. (For example, font-size: 1em = 12px, font-size: 2em = 24px and so
+     on.) Adjust this if you change the overall presentation size and need to update all font sizes. */
+    font-size: 12px;
+}
+
+/* Google font import: 'Inter' by Rasmus Andersson: https://fonts.google.com/specimen/Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Increase weight of bold text - to this end, update font-weight property of <strong> HTML tag. */
+strong {
+    font-weight: 600;
+}
+
+html, body {
+    background: var(--main-background-color);
+    font-family: var(--main-font-family);
+    font-weight: 300;
+    color: var(--main-font-color);
+}
+
+/* Applies to all elements of slide, including title, page number and left/right controls. Left empty by default,
+but can be modified if required.*/
+#slide-container {}
+
+#slide-title {
+    font-size: 4em;
+    font-weight: 500;
+    text-align: var(--slide-title-position);
+    padding-left: var(--slide-margin-left);
+    padding-right: var(--slide-margin-right);
+    padding-top: var(--slide-margin-top);
+}
+
+/* Applies to the content for each slide, *except* the title, page number and navigation */
+#slide-content {
+    margin-left: var(--slide-margin-left);
+    margin-right: var(--slide-margin-right);
+    column-gap: 20px;
+    row-gap: 5px;
+}
+
+
+/* Controls basic appearance of text added via Slide.add_textbox(...) */
+.textbox {
+    font-size: 1.7em;
+    line-height: 1.3;
+}
+
+#slide-number {
+    font-size: 1.7em;
+}
+
+/*** Slide navigation and controls ***/
+
+.slide-control {
+    font-weight: bold;
+    font-size: 18px;
+    transition: 0.6s ease;
+}
+
+/* Rounded borders for prev/next controls */
+.slide-control.prev {
+    border-radius: 0 4px 4px 0;
+}
+
+.slide-control.next {
+    border-radius: 4px 0 0 4px;
+}
+
+/* Add a bit of hover effect to the slide controls */
+.slide-control.prev:hover, .slide-control.next:hover {
+    background-color: rgba(0,0,0,0.3);
+}
+
+
+/* The navigation menu that appears when hovering over the page number */
+#nav-menu-content {
+    background-color: var(--main-background-color);
+    border-style: solid;
+    border-width: 1px;
+    border-color: #626262;
+    border-radius: 3px;
+    font-size: 0.85em;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+    line-height: 1.25;
+}
+
+#fullscreen-link {
+    font-weight: 400;
+    font-size: 0.75em;
+    text-transform: uppercase;
+    color: grey;
+    letter-spacing: 0.2em;
+}
+
+
+
+    </style>
+</head>
+
+<body onresize="scaleContent()">
+    <div id="slide-container">
+        <header>
+            <div id="slide-title"></div>
+        </header>
+        <a class="slide-control prev" id="prev-slide-ctrl" onclick="advanceSlides(-1)">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        <div id="slide-content">
+        </div>
+        <footer>
+            <div id="nav-menu">
+                <div id="slide-number">
+                    <span id="slide-number-span"></span>
+                    <div id="nav-menu-content">
+                    <a onclick="jumpToSlide('21af9694c0')">Needful.fyi Placeholder</a><br>
+                    <br>
+                    <span id="fullscreen-link">
+                        <a onclick="toggleFullScreen()">
+                        <i class="fas fa-expand"></i> Enter/Exit Fullscreen
+                        </a>
+                    </span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <a class="slide-control next" id="next-slide-ctrl" onclick="advanceSlides(1)">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+
+    <!-- Begin the needful presentation JavaScript -->
+    <script type="text/javascript">
+
+var needfulConfig = {
+    "pageNumbers" : true,
+    "width" : 1280,
+    "height" : 720,
+    "autoScale" : true,
+    "navMenu" : true,
+    "overflow" : false
+}
+
+// Define globals first:
+var slideData = [
+    {
+        "id" : "21af9694c0",
+        "title" : "Needful.fyi Placeholder",
+        "theme_id" : null,
+        "html" : `<div style="grid-column : 1 / 2; grid-row : 1 / 2;"><center><?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with matplotlib (https://matplotlib.org/) -->
+<svg height="411.598125pt" version="1.1" viewBox="0 0 545.865625 411.598125" width="545.865625pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <metadata>
+  <rdf:RDF xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2021-03-18T14:14:33.088622</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.3.4, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linecap:butt;stroke-linejoin:round;}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 411.598125 
+L 545.865625 411.598125 
+L 545.865625 0 
+L 0 0 
+z
+" style="fill:none;"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 36.465625 387.72 
+L 538.665625 387.72 
+L 538.665625 7.2 
+L 36.465625 7.2 
+z
+" style="fill:#ffffff;"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <defs>
+       <path d="M 0 0 
+L 0 3.5 
+" id="mfa598b807c" style="stroke:#000000;stroke-width:0.8;"/>
+      </defs>
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="59.292898" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <!-- 0.00 -->
+      <g transform="translate(48.160085 402.318437)scale(0.1 -0.1)">
+       <defs>
+        <path d="M 31.78125 66.40625 
+Q 24.171875 66.40625 20.328125 58.90625 
+Q 16.5 51.421875 16.5 36.375 
+Q 16.5 21.390625 20.328125 13.890625 
+Q 24.171875 6.390625 31.78125 6.390625 
+Q 39.453125 6.390625 43.28125 13.890625 
+Q 47.125 21.390625 47.125 36.375 
+Q 47.125 51.421875 43.28125 58.90625 
+Q 39.453125 66.40625 31.78125 66.40625 
+z
+M 31.78125 74.21875 
+Q 44.046875 74.21875 50.515625 64.515625 
+Q 56.984375 54.828125 56.984375 36.375 
+Q 56.984375 17.96875 50.515625 8.265625 
+Q 44.046875 -1.421875 31.78125 -1.421875 
+Q 19.53125 -1.421875 13.0625 8.265625 
+Q 6.59375 17.96875 6.59375 36.375 
+Q 6.59375 54.828125 13.0625 64.515625 
+Q 19.53125 74.21875 31.78125 74.21875 
+z
+" id="DejaVuSans-48"/>
+        <path d="M 10.6875 12.40625 
+L 21 12.40625 
+L 21 0 
+L 10.6875 0 
+z
+" id="DejaVuSans-46"/>
+       </defs>
+       <use xlink:href="#DejaVuSans-48"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-48"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="116.36108" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <!-- 0.25 -->
+      <g transform="translate(105.228267 402.318437)scale(0.1 -0.1)">
+       <defs>
+        <path d="M 19.1875 8.296875 
+L 53.609375 8.296875 
+L 53.609375 0 
+L 7.328125 0 
+L 7.328125 8.296875 
+Q 12.9375 14.109375 22.625 23.890625 
+Q 32.328125 33.6875 34.8125 36.53125 
+Q 39.546875 41.84375 41.421875 45.53125 
+Q 43.3125 49.21875 43.3125 52.78125 
+Q 43.3125 58.59375 39.234375 62.25 
+Q 35.15625 65.921875 28.609375 65.921875 
+Q 23.96875 65.921875 18.8125 64.3125 
+Q 13.671875 62.703125 7.8125 59.421875 
+L 7.8125 69.390625 
+Q 13.765625 71.78125 18.9375 73 
+Q 24.125 74.21875 28.421875 74.21875 
+Q 39.75 74.21875 46.484375 68.546875 
+Q 53.21875 62.890625 53.21875 53.421875 
+Q 53.21875 48.921875 51.53125 44.890625 
+Q 49.859375 40.875 45.40625 35.40625 
+Q 44.1875 33.984375 37.640625 27.21875 
+Q 31.109375 20.453125 19.1875 8.296875 
+z
+" id="DejaVuSans-50"/>
+        <path d="M 10.796875 72.90625 
+L 49.515625 72.90625 
+L 49.515625 64.59375 
+L 19.828125 64.59375 
+L 19.828125 46.734375 
+Q 21.96875 47.46875 24.109375 47.828125 
+Q 26.265625 48.1875 28.421875 48.1875 
+Q 40.625 48.1875 47.75 41.5 
+Q 54.890625 34.8125 54.890625 23.390625 
+Q 54.890625 11.625 47.5625 5.09375 
+Q 40.234375 -1.421875 26.90625 -1.421875 
+Q 22.3125 -1.421875 17.546875 -0.640625 
+Q 12.796875 0.140625 7.71875 1.703125 
+L 7.71875 11.625 
+Q 12.109375 9.234375 16.796875 8.0625 
+Q 21.484375 6.890625 26.703125 6.890625 
+Q 35.15625 6.890625 40.078125 11.328125 
+Q 45.015625 15.765625 45.015625 23.390625 
+Q 45.015625 31 40.078125 35.4375 
+Q 35.15625 39.890625 26.703125 39.890625 
+Q 22.75 39.890625 18.8125 39.015625 
+Q 14.890625 38.140625 10.796875 36.28125 
+z
+" id="DejaVuSans-53"/>
+       </defs>
+       <use xlink:href="#DejaVuSans-48"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-50"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="173.429261" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <!-- 0.50 -->
+      <g transform="translate(162.296449 402.318437)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-48"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-53"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="230.497443" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <!-- 0.75 -->
+      <g transform="translate(219.364631 402.318437)scale(0.1 -0.1)">
+       <defs>
+        <path d="M 8.203125 72.90625 
+L 55.078125 72.90625 
+L 55.078125 68.703125 
+L 28.609375 0 
+L 18.3125 0 
+L 43.21875 64.59375 
+L 8.203125 64.59375 
+z
+" id="DejaVuSans-55"/>
+       </defs>
+       <use xlink:href="#DejaVuSans-48"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-55"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_5">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="287.565625" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <!-- 1.00 -->
+      <g transform="translate(276.432813 402.318437)scale(0.1 -0.1)">
+       <defs>
+        <path d="M 12.40625 8.296875 
+L 28.515625 8.296875 
+L 28.515625 63.921875 
+L 10.984375 60.40625 
+L 10.984375 69.390625 
+L 28.421875 72.90625 
+L 38.28125 72.90625 
+L 38.28125 8.296875 
+L 54.390625 8.296875 
+L 54.390625 0 
+L 12.40625 0 
+z
+" id="DejaVuSans-49"/>
+       </defs>
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-48"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_6">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="344.633807" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <!-- 1.25 -->
+      <g transform="translate(333.500994 402.318437)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-50"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_7">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="401.701989" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_7">
+      <!-- 1.50 -->
+      <g transform="translate(390.569176 402.318437)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-53"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_8">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="458.77017" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_8">
+      <!-- 1.75 -->
+      <g transform="translate(447.637358 402.318437)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-55"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_9">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="515.838352" xlink:href="#mfa598b807c" y="387.72"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <!-- 2.00 -->
+      <g transform="translate(504.70554 402.318437)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-50"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-48"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_10">
+      <defs>
+       <path d="M 0 0 
+L -3.5 0 
+" id="mfef88e2aeb" style="stroke:#000000;stroke-width:0.8;"/>
+      </defs>
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="370.423636"/>
+      </g>
+     </g>
+     <g id="text_10">
+      <!-- 1.00 -->
+      <g transform="translate(7.2 374.222855)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-48"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_11">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="327.182727"/>
+      </g>
+     </g>
+     <g id="text_11">
+      <!-- 1.25 -->
+      <g transform="translate(7.2 330.981946)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-50"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_12">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="283.941818"/>
+      </g>
+     </g>
+     <g id="text_12">
+      <!-- 1.50 -->
+      <g transform="translate(7.2 287.741037)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-53"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_13">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="240.700909"/>
+      </g>
+     </g>
+     <g id="text_13">
+      <!-- 1.75 -->
+      <g transform="translate(7.2 244.500128)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-49"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-55"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_14">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="197.46"/>
+      </g>
+     </g>
+     <g id="text_14">
+      <!-- 2.00 -->
+      <g transform="translate(7.2 201.259219)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-50"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-48"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_15">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="154.219091"/>
+      </g>
+     </g>
+     <g id="text_15">
+      <!-- 2.25 -->
+      <g transform="translate(7.2 158.01831)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-50"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-50"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_16">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="110.978182"/>
+      </g>
+     </g>
+     <g id="text_16">
+      <!-- 2.50 -->
+      <g transform="translate(7.2 114.777401)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-50"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-53"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_8">
+     <g id="line2d_17">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="67.737273"/>
+      </g>
+     </g>
+     <g id="text_17">
+      <!-- 2.75 -->
+      <g transform="translate(7.2 71.536491)scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-50"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-55"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-53"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_9">
+     <g id="line2d_18">
+      <g>
+       <use style="stroke:#000000;stroke-width:0.8;" x="36.465625" xlink:href="#mfef88e2aeb" y="24.496364"/>
+      </g>
+     </g>
+     <g id="text_18">
+      <!-- 3.00 -->
+      <g transform="translate(7.2 28.295582)scale(0.1 -0.1)">
+       <defs>
+        <path d="M 40.578125 39.3125 
+Q 47.65625 37.796875 51.625 33 
+Q 55.609375 28.21875 55.609375 21.1875 
+Q 55.609375 10.40625 48.1875 4.484375 
+Q 40.765625 -1.421875 27.09375 -1.421875 
+Q 22.515625 -1.421875 17.65625 -0.515625 
+Q 12.796875 0.390625 7.625 2.203125 
+L 7.625 11.71875 
+Q 11.71875 9.328125 16.59375 8.109375 
+Q 21.484375 6.890625 26.8125 6.890625 
+Q 36.078125 6.890625 40.9375 10.546875 
+Q 45.796875 14.203125 45.796875 21.1875 
+Q 45.796875 27.640625 41.28125 31.265625 
+Q 36.765625 34.90625 28.71875 34.90625 
+L 20.21875 34.90625 
+L 20.21875 43.015625 
+L 29.109375 43.015625 
+Q 36.375 43.015625 40.234375 45.921875 
+Q 44.09375 48.828125 44.09375 54.296875 
+Q 44.09375 59.90625 40.109375 62.90625 
+Q 36.140625 65.921875 28.71875 65.921875 
+Q 24.65625 65.921875 20.015625 65.03125 
+Q 15.375 64.15625 9.8125 62.3125 
+L 9.8125 71.09375 
+Q 15.4375 72.65625 20.34375 73.4375 
+Q 25.25 74.21875 29.59375 74.21875 
+Q 40.828125 74.21875 47.359375 69.109375 
+Q 53.90625 64.015625 53.90625 55.328125 
+Q 53.90625 49.265625 50.4375 45.09375 
+Q 46.96875 40.921875 40.578125 39.3125 
+z
+" id="DejaVuSans-51"/>
+       </defs>
+       <use xlink:href="#DejaVuSans-51"/>
+       <use x="63.623047" xlink:href="#DejaVuSans-46"/>
+       <use x="95.410156" xlink:href="#DejaVuSans-48"/>
+       <use x="159.033203" xlink:href="#DejaVuSans-48"/>
+      </g>
+     </g>
+    </g>
+   </g>
+   <g id="line2d_19">
+    <path clip-path="url(#p68ec245e8e)" d="M 59.292898 370.423636 
+L 287.565625 197.46 
+L 515.838352 24.496364 
+" style="fill:none;stroke:#1f77b4;stroke-linecap:square;stroke-width:1.5;"/>
+   </g>
+   <g id="line2d_20">
+    <path clip-path="url(#p68ec245e8e)" d="M 59.292898 24.496364 
+L 287.565625 197.46 
+L 515.838352 370.423636 
+" style="fill:none;stroke:#ff7f0e;stroke-linecap:square;stroke-width:1.5;"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 36.465625 387.72 
+L 36.465625 7.2 
+" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 538.665625 387.72 
+L 538.665625 7.2 
+" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 36.465625 387.72 
+L 538.665625 387.72 
+" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 36.465625 7.2 
+L 538.665625 7.2 
+" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;"/>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p68ec245e8e">
+   <rect height="380.52" width="502.2" x="36.465625" y="7.2"/>
+  </clipPath>
+ </defs>
+</svg>
+</center></div>`,
+        "layout" : "grid-template-columns: repeat(1, 1fr)",
+        "plotly" : function plot() {
+            return
+        },
+        "purge" : function purge() {
+            return
+        },
+        "pageNumber" : needfulConfig.pageNumbers,
+        "navMenu" : needfulConfig.navMenu,
+        "autoScale" : needfulConfig.autoScale,
+        "overflow" : needfulConfig.overflow,
+        "disable_mathjax" : false
+    } ];
+
+var slideIndex = 0;
+var maxIndex = slideData.length - 1;
+
+// Map slide IDs to their position in the slideData array.
+var slideIDToIndex = {};
+for (var i = 0; i <= maxIndex; i++){
+  var slideID = slideData[i].id;
+  slideIDToIndex[slideID] = i;
+}
+
+// Create a dictionary containing CSS theme IDs and their variables.
+var cssThemes = {
+
+}
+
+// This is stupid, but for themes to work properly we need to extract all CSS :root variables
+// and store them.
+var initialCSS = Array.from(document.styleSheets).map( (style) => Array.from(style.cssRules) ).flat();
+
+// Filter for :root, extract variables and their values, store in array.
+var cssRootStyle = initialCSS.filter( (sel) => sel.selectorText == ":root" );
+if (cssRootStyle.length > 0){
+    cssRootStyle = cssRootStyle[0].style;
+    var cssVarNames = Array.from(cssRootStyle).filter( (name) => name.startsWith("--") );
+
+    // Create list of --name, value pairs, assign to "default" in cssThemes.
+    cssThemes["default"] = cssVarNames.map( (name) => [name, cssRootStyle.getPropertyValue(name)] );
+}
+else
+{
+    cssThemes["default"] = [];
+}
+
+// Define functions:
+
+function showSlide(slide) {
+    // As implied, display the given slide.
+
+    // Clear existing title, replace with new one.
+    var titleSpan = $("#slide-title");
+    titleSpan.empty();
+    titleSpan.append(slide.title);
+
+    // Clear existing content.
+    var slideContent = $("#slide-content");
+    slideContent.empty();
+
+    // Update CSS grid layout/number of columns.
+    slideContent.attr("style", slide.layout);
+
+    // Apply default CSS theme before we show anything.
+    cssThemes.default.forEach( ([name, val]) => cssRootStyle.setProperty(name, val) );
+
+    // Apply slide's CSS theme, if one is set.
+    if (slide.theme_id != null & cssThemes.default.length > 0) {
+        cssThemes[slide.theme_id].forEach( ([name, val]) => cssRootStyle.setProperty(name, val) );
+    }
+
+    // Shove in new slide's HTML content, call plotting function.
+    slideContent.append(slide.html);
+    slide.plotly();
+
+    // Update slide number.
+    var slideNumber = $("#slide-number-span");
+    slideNumber.empty();
+    if (slide.pageNumber){
+        slideNumber.append(slideIndex + 1);
+    }
+
+    // Typeset any maths that may be present.
+    if (typeof MathJax !== "undefined" & !slide.disable_mathjax) {
+      MathJax.typeset();
+    }
+
+    // Update content scaling if necessary. Note: if there's issues, this call
+    // may be moved to some page ready event.
+    scaleContent();
+}
+
+function scaleContent(){
+    // Update content scaling if we need to fit everything to screen.
+
+    // First, fix size of the slide container.
+    var slideContainer = $("#slide-container");
+    if (slideData[slideIndex].overflow) {
+        slideContainer.css("overflow", "");
+    }
+    else {
+        slideContainer.css("overflow", "hidden");
+    }
+
+    // If we don't need to further autoscale, stop here.
+    if (!slideData[slideIndex].autoScale){
+        slideContainer.css({"width": "", "height": ""});
+        slideContainer.css({"left": "", "top": ""});
+        slideContainer.css({"transform": "", "transform-origin": ""});
+        return;
+    };
+
+    slideContainer.css("width", needfulConfig.width);
+    slideContainer.css("height", needfulConfig.height);
+
+    // How much space do we have?
+    var windowHeight = window.innerHeight;
+    var windowWidth = window.innerWidth;
+
+    var widthRatio = windowWidth / needfulConfig.width;
+    var heightRatio = windowHeight / needfulConfig.height;
+
+    var left = 0;
+    var top = 0;
+
+    if (widthRatio > heightRatio)
+    {
+        // Window is too wide for scaled height to fit without scrolling, therefore fix the height to windowHeight and
+        // scale the width accordingly.
+        var newWidth = heightRatio * needfulConfig.width;
+        left = 0.5 * (windowWidth - newWidth);
+        transform = "scale(" + heightRatio + ")";
+    }
+    else
+    {
+        // Window is too tall for scaled width to fit without scrolling, therefore fix the width to windowWidth and
+        // scale height accordingly.
+        var newHeight = widthRatio * needfulConfig.height;
+        top = 0.5 * (windowHeight - newHeight);
+        transform = "scale(" + widthRatio + ")";
+    }
+
+    slideContainer.css("left", left);
+    slideContainer.css("top", top);
+    slideContainer.css("transform", transform);
+    slideContainer.css("transform-origin", "0 0");
+}
+
+function advanceSlides(n){
+    // Advance the presentation by n slides.
+
+    // Sanity check:
+    if (slideIndex + n < 0 || slideIndex + n > maxIndex) { return }
+
+    slideData[slideIndex].purge();
+
+    // Display the new slide:
+    showSlide(slideData[slideIndex += n]);
+
+    // Control visibility of slide controls.
+    $("#prev-slide-ctrl").show();
+    $("#next-slide-ctrl").show();
+
+    if (slideIndex == maxIndex) {
+        $("#next-slide-ctrl").hide();
+    }
+    if (slideIndex == 0) {
+        $("#prev-slide-ctrl").hide();
+    }
+}
+
+function jumpToSlide(slideID){
+    // Map slideID to index in slideData:
+    var idx = slideIDToIndex[slideID];
+
+    // Use advanceSlides(n) to jump to slide we need.
+    var delta = idx - slideIndex;
+    if (delta == 0){
+        return;
+    }
+    else {
+        advanceSlides(delta);
+    }
+}
+
+function showNavMenu() {
+    if (!slideData[slideIndex].navMenu){
+        $("#slide-number-span").css("cursor", "auto");
+        return;
+    }
+
+    $("#slide-number-span").css("cursor", "pointer");
+
+    // Get position of page number - left, right or centre.
+    var navMenu = $("#nav-menu-content");
+    var slideNumPos = $("#slide-number").css("text-align");
+
+    if (slideNumPos.trim() == "right"){
+        // If page number is on right, nav menu will appear off page.
+        var right = window.innerWidth - $("#slide-number-span").position().left;
+        navMenu.css("right", right);
+    }
+    else
+    {
+        navMenu.css("right", "auto");
+    }
+
+    navMenu.css("display", "inline-block");
+}
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+
+$(document).ready( function() {
+    // Show the first slide!
+    showSlide(slideData[0]);
+
+    // Hide previous-slide control as we're on the first page.
+    $("#prev-slide-ctrl").hide();
+    // Also hide next control if there's only one slide.
+    if (maxIndex == 0){
+        $("#next-slide-ctrl").hide();
+    }
+
+    // Add left/right arrow key navigation.
+    $(document).keydown( function(e) {
+        // left
+        if (e.which == 37){
+            advanceSlides(-1);
+        }
+        // right
+        else if (e.which == 39){
+            advanceSlides(1);
+        }
+    });
+});
+
+
+
+// Display the hidden navigation menu when the user hovers over the page number.
+$("#slide-number-span").hover(
+    showNavMenu, // on hover
+    function(){ $("#nav-menu-content").css("display", "none"); }, // unhover
+);
+// Similarly, this will maintain hover until the user moves away from the menu.
+$("#nav-menu-content").hover(
+    showNavMenu, // on hover
+    function(){ $("#nav-menu-content").css("display", "none"); }, // unhover
+);    </script>
+</body>
+
+</html>
