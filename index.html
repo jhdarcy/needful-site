@@ -185,6 +185,9 @@ but can be modified if required.*/
 .textbox {
     font-size: 2.2em;
     line-height: 1.3;
+}
+
+.fill-width {
     width: 100%;
 }
 
@@ -268,8 +271,8 @@ code {
                 <div id="slide-number">
                     <span id="slide-number-span"></span>
                     <div id="nav-menu-content">
-                    <a onclick="jumpToSlide('4d9385dbd7')"><span class='menu-special'>needful</span></a><br>
-                    <a onclick="jumpToSlide('f636714b77')">What is <i>needful?</i></a><br>
+                    <a onclick="jumpToSlide('7e8221fa0e')"><span class='menu-special'>needful</span></a><br>
+                    <a onclick="jumpToSlide('3b097b3c3c')">What is <i>needful?</i></a><br>
                     <br>
                     <span id="fullscreen-link">
                         <a onclick="toggleFullScreen()">
@@ -300,16 +303,14 @@ var needfulConfig = {
 // Define globals first:
 var slideData = [
     {
-        "id" : "4d9385dbd7",
+        "id" : "7e8221fa0e",
         "title" : "",
         "theme_id" : "0a91769097",
         "html" : `<div style="grid-column : 1 / 2; grid-row : 1 / 2;" class="textbox"><h1>needful</h1>
 <p>Simple, lightweight, interactive HTML presentations for data scientists.</p>
 <p><br><br></p>
 <p class="instructions">
-Use your left/right arrow keys to navigate, or click the 
-<i class="fas fa-chevron-left"></i> <i class="fas fa-chevron-right"></i> buttons.
-</p></div>`,
+Use your left/right arrow keys to navigate.</div>`,
         "layout" : "grid-template-columns: repeat(1, 1fr)",
         "plot" : function plot() {
             return
@@ -323,10 +324,10 @@ Use your left/right arrow keys to navigate, or click the
         "overflow" : needfulConfig.overflow,
         "disable_mathjax" : false
     } ,    {
-        "id" : "f636714b77",
+        "id" : "3b097b3c3c",
         "title" : "What is <i>needful?</i>",
         "theme_id" : null,
-        "html" : `<div style="grid-column : 1 / 2; grid-row : 1 / 2;" class="textbox"><ul>
+        "html" : `<div style="grid-column : 1 / 2; grid-row : 1 / 2;" class="fill-width textbox"><ul>
 <li><em>needful</em> is a Python package for generating HTML presentations.</li>
 </ul>
 <p><br><br><br>
